@@ -1,0 +1,138 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+</head>
+
+<body>
+    @Html.AntiForgeryToken()
+
+    @*Text above droplist that exchange exactly 1 unit off the base currency*@
+    <p id="p1"></p>
+    <p id="p2"></p>
+
+    <div class="row">
+        <div class="col-md-4">
+            @Html.DropDownList("ListOfCurrency", (IEnumerable
+        <SelectListItem>)ViewData["ListOfCurrency"], new {id = "ddl1", onchange = "changeEvent1();"})
+        </div>
+        <div class="one-column-row"><input id="fromInput11" oninput="inputUpdate1()" value="" /></div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            @Html.DropDownList("ListOfCurrency", (IEnumerable
+        <SelectListItem>)ViewData["ListOfCurrency"], new {id = "ddl2", onchange = "changeEvent1();"})
+        </div>
+        <div class="one-column-row"><input id="fromInput22" oninput="inputUpdate2()" value="" /></div>
+    </div>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script type="text/javascript">
+
+        //Javascript variables
+        var Currency1;
+        var Currency2;
+        var Currency1Rate;
+        var Currency1RateValue;
+        var Currency2Rate;
+        var Currency2RateValue;
+
+        //InputUpdate, calculate the currency exchange and sets the result in the textbox
+        function inputUpdate1() {
+            var firstNumber = document.getElementById("fromInput11").value;
+            Currency1 = Currency1.replace(',', '.');
+            Currency1RateValue = firstNumber / Currency1;
+            Currency1Rate = Currency2 * Currency1RateValue;
+            var Input2Value = Currency2 * Currency1RateValue;
+            Input2Value = Input2Value.toFixed(2);
+
+            document.getElementById("fromInput22").value = Input2Value;
+        }
+
+        function inputUpdate2() {
+            var secondNumber = document.getElementById("fromInput22").value;
+            Currency2 = Currency2.replace(',', '.');
+            Currency2RateValue = secondNumber / Currency2;
+            Currency2Rate = Currency1 * Currency2RateValue;
+            var Input1Value = Currency1 * Currency2RateValue;
+            Input1Value = Input1Value.toFixed(2);
+
+            document.getElementById("fromInput11").value = Input1Value;
+        }
+
+        //Changes the text above the dropdown lists
+        function ChangeTextP1(text1) {
+            document.getElementById("p1").innerHTML = "1 " + text1 + " is equal to";
+        }
+
+        //Changes the text above the dropdown lists and calculates the exchange off 1 unit.
+        function ChangeTextP2(text2) {
+            Currency2RateVa = 1 / Currency1;
+            Currency2Rate = Currency2 * Currency2RateVa;
+            document.getElementById("p2").innerHTML = Currency2Rate.toFixed(2) + " " + text2;
+        }
+
+        //Ajax handles the communication with the Index.cshtml.cs
+        //The rate between two currencies will be returned and calculation is done in JS.
+        $(function () {
+            $("#ddl1").change(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/Index?handler=GetTime",
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("XSRF-TOKEN",
+                            $('input:hidden[name="__RequestVerificationToken"]').val());
+                    },
+                    data: { "name": $("#ddl1").val() },
+                    success: function (response) {
+                        Currency1 = response.Rate;
+                        var Text1 = ddl1.options[ddl1.selectedIndex].innerHTML;
+                        ChangeTextP1(Text1);
+                    },
+                    failure: function (response) {
+
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        alert(response.responseText);
+                    }
+                });
+            });
+        });
+
+        $(function () {
+            $("#ddl2").change(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/Index?handler=GetTime",
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("XSRF-TOKEN",
+                            $('input:hidden[name="__RequestVerificationToken"]').val());
+                    },
+                    data: { "name": $("#ddl2").val() },
+                    success: function (response) {
+                        Currency2 = response.Rate;
+                        var Text2 = ddl2.options[ddl2.selectedIndex].innerHTML;
+                        ChangeTextP2(Text2);
+                    },
+                    failure: function (response) {
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        alert(response.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html >
